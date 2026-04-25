@@ -1,0 +1,93 @@
+/* components/auth/AuthLayout.module.css */
+
+.backdrop {
+  align-items: center;
+  background: var(--bg-base);
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+}
+
+.orb1 {
+  background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 70%);
+  border-radius: 50%;
+  height: 600px;
+  left: -200px;
+  pointer-events: none;
+  position: absolute;
+  top: -200px;
+  width: 600px;
+}
+
+.orb2 {
+  background: radial-gradient(circle, rgba(99,168,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  bottom: -200px;
+  height: 500px;
+  pointer-events: none;
+  position: absolute;
+  right: -150px;
+  width: 500px;
+}
+
+.card {
+  animation: fadeIn 0.3s ease;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px 36px;
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 24px 64px rgba(0,0,0,0.4);
+  z-index: 1;
+}
+
+.logoRow {
+  align-items: center;
+  display: flex;
+  gap: 9px;
+  margin-bottom: 28px;
+}
+
+.logoMark {
+  align-items: center;
+  background: var(--accent-dim);
+  border: 1px solid rgba(245,166,35,0.25);
+  border-radius: 8px;
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.logoText {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+
+.content {
+  margin-top: 4px;
+}

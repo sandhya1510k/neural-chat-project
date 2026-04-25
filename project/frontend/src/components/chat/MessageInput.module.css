@@ -1,0 +1,91 @@
+/* components/chat/MessageInput.module.css */
+
+.wrapper {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 14px 20px 10px;
+}
+
+.bar {
+  align-items: flex-end;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-lg);
+  display: flex;
+  gap: 8px;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 10px 10px 10px 16px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.bar:focus-within {
+  border-color: rgba(245,166,35,0.35);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+}
+
+.textarea {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  max-height: 180px;
+  outline: none;
+  resize: none;
+  overflow-y: auto;
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.sendBtn {
+  align-items: center;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition), box-shadow var(--transition),
+              transform var(--transition);
+  width: 34px;
+}
+
+.sendBtn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0c0c0f;
+}
+
+.sendBtn.active:hover {
+  box-shadow: 0 0 14px var(--accent-glow);
+  transform: scale(1.05);
+}
+
+.sendBtn:disabled {
+  cursor: not-allowed;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  margin-top: 8px;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}

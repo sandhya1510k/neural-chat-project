@@ -1,0 +1,25 @@
+/* components/ui/LoadingScreen.module.css */
+
+.screen {
+  align-items: center;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100vh;
+  justify-content: center;
+  width: 100vw;
+}
+
+.logo {
+  animation: pulse 1.8s ease infinite;
+}
+
+.spinner {
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  height: 22px;
+  width: 22px;
+  animation: spin 0.75s linear infinite;
+}

@@ -1,0 +1,111 @@
+/* pages/AuthPages.module.css */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.errorBox {
+  background: rgba(224, 82, 82, 0.12);
+  border: 1px solid rgba(224, 82, 82, 0.35);
+  color: #e05252;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.input {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  padding: 11px 14px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  width: 100%;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+  outline: none;
+}
+
+.submitBtn {
+  align-items: center;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #0c0c0f;
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  height: 44px;
+  justify-content: center;
+  margin-top: 4px;
+  transition: opacity var(--transition), transform var(--transition);
+  width: 100%;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.spinner {
+  border: 2px solid rgba(12, 12, 15, 0.3);
+  border-top-color: #0c0c0f;
+  border-radius: 50%;
+  display: inline-block;
+  height: 18px;
+  width: 18px;
+  animation: spin 0.7s linear infinite;
+}
+
+.switchLink {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.switchLink a {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.switchLink a:hover {
+  text-decoration: underline;
+}

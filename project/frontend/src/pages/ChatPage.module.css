@@ -1,0 +1,21 @@
+/* pages/ChatPage.module.css */
+
+.shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevent flex overflow */
+  transition: margin-left var(--transition);
+}
+
+.mainFull {
+  /* When sidebar is collapsed, main takes full width */
+}
