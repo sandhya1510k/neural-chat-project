@@ -93,17 +93,6 @@ export const ChatProvider = ({ children }) => {
     };
   }, [token]);
 
-  // ─── Fetch conversations on login ─────────────────────────────────────────
-  useEffect(() => {
-    if (!token) {
-      setConversations([]);
-      setMessages([]);
-      setActiveConversationId(null);
-      return;
-    }
-    fetchConversations();
-  }, [token, fetchConversations]);
-
   const fetchConversations = useCallback(async () => {
     setLoadingConversations(true);
     try {
@@ -115,6 +104,17 @@ export const ChatProvider = ({ children }) => {
       setLoadingConversations(false);
     }
   }, []);
+
+  // ─── Fetch conversations on login ─────────────────────────────────────────
+  useEffect(() => {
+    if (!token) {
+      setConversations([]);
+      setMessages([]);
+      setActiveConversationId(null);
+      return;
+    }
+    fetchConversations();
+  }, [token, fetchConversations]);
 
   // ─── Select a conversation & load its messages ────────────────────────────
   const selectConversation = useCallback(async (conversationId) => {
