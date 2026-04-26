@@ -26,7 +26,12 @@ const initSocket = (httpServer) => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+          return callback(null, true);
+        }
+        callback(new Error("Not allowed by CORS"));
+      },
       methods: ["GET", "POST"],
       credentials: true,
     },
