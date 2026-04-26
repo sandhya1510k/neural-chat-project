@@ -14,7 +14,7 @@ import { createSocket, disconnectSocket } from '../socket/socketClient';
 const ChatContext = createContext(null);
 
 export const ChatProvider = ({ children }) => {
-  const { token, user }                                   = useAuth();
+  const { token }                                          = useAuth();
   const [socket, setSocket]                               = useState(null);
   const [conversations, setConversations]                 = useState([]);
   const [activeConversationId, setActiveConversationId]   = useState(null);
@@ -102,7 +102,7 @@ export const ChatProvider = ({ children }) => {
       return;
     }
     fetchConversations();
-  }, [token]);
+  }, [token, fetchConversations]);
 
   const fetchConversations = useCallback(async () => {
     setLoadingConversations(true);
