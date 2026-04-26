@@ -18,9 +18,15 @@ const Message = require("../models/Message");
 const onlineUsers = new Map();
 
 const initSocket = (httpServer) => {
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    process.env.CLIENT_URL,
+  ].filter(Boolean);
+
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
     },
