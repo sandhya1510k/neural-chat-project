@@ -1,8 +1,3 @@
-/**
- * context/ChatContext.js — Global chat state
- * Manages conversations list, active conversation, messages, and socket events
- */
-
 import React, {
   createContext, useContext, useState, useEffect,
   useCallback, useRef,
@@ -18,7 +13,7 @@ export const ChatProvider = ({ children }) => {
   const [socket, setSocket]                               = useState(null);
   const [conversations, setConversations]                 = useState([]);
   const [activeConversationId, setActiveConversationId]   = useState(null);
-  const [messages, setMessages]                           = useState([]);  // for active conv
+  const [messages, setMessages]                           = useState([]);
   const [isBotTyping, setIsBotTyping]                     = useState(false);
   const [onlineUsers, setOnlineUsers]                     = useState([]);
   const [loadingConversations, setLoadingConversations]   = useState(false);
@@ -43,24 +38,46 @@ export const ChatProvider = ({ children }) => {
     sock.on('connect', () => setSocketConnected(true));
     sock.on('disconnect', () => setSocketConnected(false));
 
-    // Bot is typing indicator
     sock.on('bot_typing', ({ isTyping }) => setIsBotTyping(isTyping));
 
-    // Message confirmed saved (user's own message echo)
+    // User message echo (replace optimistic)
     sock.on('message_saved', (msg) => {
       setMessages(prev => {
-        // Replace optimistic message (temp id) with confirmed one if exists
         const exists = prev.find(m => m._id === msg._id);
         if (exists) return prev;
-        return [...prev, msg];
+        // Replace optimistic placeholder with confirmed message
+        return prev.map(m => m.isOptimistic && m.role === 'user' ? msg : m);
       });
     });
 
-    // Bot response received
-    sock.on('receive_message', (msg) => {
-      setMessages(prev => [...prev, msg]);
+    // Streaming: append each token to the streaming bubble
+    sock.on('bot_token', ({ streamingMessageId, token }) => {
+      setMessages(prev => {
+        const existing = prev.find(m => m._id === streamingMessageId);
+        if (existing) {
+          return prev.map(m =>
+            m._id === streamingMessageId
+              ? { ...m, text: m.text + token }
+              : m
+          );
+        }
+        // Create the streaming bubble on first token
+        return [...prev, {
+          _id: streamingMessageId,
+          role: 'bot',
+          text: token,
+          createdAt: new Date().toISOString(),
+          isStreaming: true,
+        }];
+      });
+    });
+
+    // Streaming done: replace streaming bubble with confirmed DB record
+    sock.on('bot_response_end', ({ streamingMessageId, message: msg }) => {
+      setMessages(prev =>
+        prev.map(m => m._id === streamingMessageId ? { ...msg, isStreaming: false } : m)
+      );
       setIsBotTyping(false);
-      // Update conversation preview
       setConversations(prev =>
         prev.map(c =>
           c._id === msg.conversationId
@@ -70,10 +87,13 @@ export const ChatProvider = ({ children }) => {
       );
     });
 
-    // Online users list
+    // Regenerate: remove the old bot message bubble immediately
+    sock.on('message_removed', ({ messageId }) => {
+      setMessages(prev => prev.filter(m => m._id !== messageId));
+    });
+
     sock.on('online_users', (userIds) => setOnlineUsers(userIds));
 
-    // Socket-level errors
     sock.on('error_event', ({ message }) => {
       console.error('Socket error:', message);
       setIsBotTyping(false);
@@ -86,7 +106,9 @@ export const ChatProvider = ({ children }) => {
       sock.off('disconnect');
       sock.off('bot_typing');
       sock.off('message_saved');
-      sock.off('receive_message');
+      sock.off('bot_token');
+      sock.off('bot_response_end');
+      sock.off('message_removed');
       sock.off('online_users');
       sock.off('error_event');
       setSocketError(null);
@@ -105,7 +127,6 @@ export const ChatProvider = ({ children }) => {
     }
   }, []);
 
-  // ─── Fetch conversations on login ─────────────────────────────────────────
   useEffect(() => {
     if (!token) {
       setConversations([]);
@@ -116,7 +137,6 @@ export const ChatProvider = ({ children }) => {
     fetchConversations();
   }, [token, fetchConversations]);
 
-  // ─── Select a conversation & load its messages ────────────────────────────
   const selectConversation = useCallback(async (conversationId) => {
     if (activeConversationId === conversationId) return;
     setActiveConversationId(conversationId);
@@ -132,7 +152,6 @@ export const ChatProvider = ({ children }) => {
     }
   }, [activeConversationId]);
 
-  // ─── Create a new conversation ────────────────────────────────────────────
   const createConversation = useCallback(async () => {
     try {
       const { data } = await chatAPI.createConversation();
@@ -146,7 +165,6 @@ export const ChatProvider = ({ children }) => {
     }
   }, []);
 
-  // ─── Delete a conversation ────────────────────────────────────────────────
   const deleteConversation = useCallback(async (conversationId) => {
     try {
       await chatAPI.deleteConversation(conversationId);
@@ -160,28 +178,42 @@ export const ChatProvider = ({ children }) => {
     }
   }, [activeConversationId]);
 
-  // ─── Send a message via Socket.io ─────────────────────────────────────────
+  // ─── Send a message ───────────────────────────────────────────────────────
   const sendMessage = useCallback((text) => {
     if (!socketRef.current || !activeConversationId || !text.trim()) return;
 
-    // Optimistic UI — add user message immediately
-    const optimistic = {
-      _id: `temp-${Date.now()}`,
+    const optimisticUser = {
+      _id: `temp-user-${Date.now()}`,
       conversationId: activeConversationId,
       role: 'user',
       text: text.trim(),
       createdAt: new Date().toISOString(),
       isOptimistic: true,
     };
-    setMessages(prev => [...prev, optimistic]);
+
+    // Pre-allocate a streaming message ID so bot_token events can target it
+    const streamingMessageId = `streaming-${Date.now()}`;
+
+    setMessages(prev => [...prev, optimisticUser]);
 
     socketRef.current.emit('send_message', {
       conversationId: activeConversationId,
       message: text.trim(),
+      streamingMessageId,
     });
   }, [activeConversationId]);
 
-  // Update conversation title in local state after auto-rename
+  // ─── Regenerate the last bot message ──────────────────────────────────────
+  const regenerateMessage = useCallback((botMessageId) => {
+    if (!socketRef.current || !activeConversationId) return;
+    const streamingMessageId = `streaming-${Date.now()}`;
+    socketRef.current.emit('regenerate_message', {
+      conversationId: activeConversationId,
+      botMessageId,
+      streamingMessageId,
+    });
+  }, [activeConversationId]);
+
   const updateConvTitle = useCallback((conversationId, title) => {
     setConversations(prev =>
       prev.map(c => c._id === conversationId ? { ...c, title } : c)
@@ -200,6 +232,7 @@ export const ChatProvider = ({ children }) => {
       createConversation,
       deleteConversation,
       sendMessage,
+      regenerateMessage,
       updateConvTitle,
       fetchConversations,
     }}>

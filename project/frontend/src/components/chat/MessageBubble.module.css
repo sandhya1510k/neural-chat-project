@@ -127,3 +127,72 @@
 .copyBtn:hover {
   color: var(--accent);
 }
+
+/* Regenerate button */
+.regenBtn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  gap: 4px;
+  opacity: 0;
+  padding: 2px 6px;
+  transition: opacity var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.row:hover .regenBtn {
+  opacity: 1;
+}
+
+.regenBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Streaming cursor blink */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Syntax-highlighted code block */
+.codeBlock {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.codeLang {
+  background: var(--bg-overlay);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  padding: 3px 10px;
+}
+
+/* Inline code */
+.inlineCode {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.83em;
+  padding: 1px 5px;
+}

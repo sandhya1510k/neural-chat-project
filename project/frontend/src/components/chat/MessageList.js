@@ -1,8 +1,3 @@
-/**
- * components/chat/MessageList.js
- * Scrollable list of chat messages + typing indicator
- */
-
 import React from 'react';
 import { useChat } from '../../context/ChatContext';
 import MessageBubble from './MessageBubble';
@@ -11,8 +6,11 @@ import useAutoScroll from '../../hooks/useAutoScroll';
 import styles from './MessageList.module.css';
 
 const MessageList = () => {
-  const { messages, loadingMessages, isBotTyping } = useChat();
+  const { messages, loadingMessages, isBotTyping, regenerateMessage } = useChat();
   const bottomRef = useAutoScroll([messages, isBotTyping]);
+
+  // Index of the last bot message (for the regenerate button)
+  const lastBotIdx = messages.reduce((acc, m, i) => m.role === 'bot' ? i : acc, -1);
 
   if (loadingMessages) {
     return (
@@ -38,14 +36,14 @@ const MessageList = () => {
             <MessageBubble
               key={msg._id}
               message={msg}
-              isLast={idx === messages.length - 1}
+              isLast={idx === lastBotIdx}
+              onRegenerate={!isBotTyping ? regenerateMessage : null}
             />
           ))
         )}
 
         {isBotTyping && <TypingIndicator />}
 
-        {/* Scroll anchor */}
         <div ref={bottomRef} />
       </div>
     </div>

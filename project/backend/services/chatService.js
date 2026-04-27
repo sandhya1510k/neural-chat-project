@@ -91,6 +91,77 @@ const updateConversationTitle = async (conversationId, firstMessage) => {
   await Conversation.findByIdAndUpdate(conversationId, { title });
 };
 
+const decrementMessageCount = async (conversationId) => {
+  await Conversation.findByIdAndUpdate(conversationId, {
+    $inc: { messageCount: -1 },
+  });
+};
+
+/**
+ * Full-text search across conversation titles and message content for a user.
+ * Falls back to regex if text index is not yet created.
+ */
+const searchConversations = async (userId, query) => {
+  const q = query.trim();
+  if (!q) return [];
+
+  const regex = new RegExp(q, "i");
+
+  // Find conversations whose title matches
+  const titleMatches = await Conversation.find({
+    userId,
+    isActive: true,
+    title: regex,
+  })
+    .sort({ updatedAt: -1 })
+    .limit(20)
+    .lean();
+
+  // Find messages whose text matches and belong to the user's conversations
+  const userConvIds = (
+    await Conversation.find({ userId, isActive: true }).select("_id").lean()
+  ).map((c) => c._id);
+
+  const messageMatches = await Message.find({
+    conversationId: { $in: userConvIds },
+    text: regex,
+  })
+    .sort({ createdAt: -1 })
+    .limit(30)
+    .lean();
+
+  // Collect conversation IDs from message matches
+  const matchedConvIds = new Set(
+    messageMatches.map((m) => m.conversationId.toString())
+  );
+
+  // Fetch those conversations (avoiding duplicates already in titleMatches)
+  const titleMatchIds = new Set(titleMatches.map((c) => c._id.toString()));
+  const extraIds = [...matchedConvIds].filter((id) => !titleMatchIds.has(id));
+
+  const messageMatchConvs = extraIds.length
+    ? await Conversation.find({ _id: { $in: extraIds } })
+        .sort({ updatedAt: -1 })
+        .lean()
+    : [];
+
+  // Combine and annotate with a snippet from the matching message
+  const snippetMap = {};
+  for (const msg of messageMatches) {
+    const cid = msg.conversationId.toString();
+    if (!snippetMap[cid]) {
+      snippetMap[cid] = msg.text.substring(0, 100);
+    }
+  }
+
+  const all = [...titleMatches, ...messageMatchConvs].map((conv) => ({
+    ...conv,
+    snippet: snippetMap[conv._id.toString()] || null,
+  }));
+
+  return all;
+};
+
 module.exports = {
   createConversation,
   getUserConversations,
@@ -99,4 +170,6 @@ module.exports = {
   saveMessage,
   getConversationMessages,
   updateConversationTitle,
+  decrementMessageCount,
+  searchConversations,
 };

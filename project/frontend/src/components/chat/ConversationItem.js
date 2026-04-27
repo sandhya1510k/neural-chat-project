@@ -17,7 +17,7 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
-const ConversationItem = ({ conversation, isActive, isOpen, onSelect, onDelete }) => {
+const ConversationItem = ({ conversation, isActive, isOpen, onSelect, onDelete, snippet }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleDelete = (e) => {
@@ -48,8 +48,10 @@ const ConversationItem = ({ conversation, isActive, isOpen, onSelect, onDelete }
         <>
           <div className={styles.content}>
             <div className={styles.title}>{conversation.title}</div>
-            {conversation.lastMessage && (
-              <div className={styles.preview}>{conversation.lastMessage}</div>
+            {(snippet || conversation.lastMessage) && (
+              <div className={`${styles.preview} ${snippet ? styles.snippet : ''}`}>
+                {snippet || conversation.lastMessage}
+              </div>
             )}
           </div>
 

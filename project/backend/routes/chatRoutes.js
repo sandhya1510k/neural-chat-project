@@ -14,6 +14,7 @@ const {
   getConversations,
   deleteConversation,
   getMessages,
+  searchConversations,
 } = require("../controllers/chatController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -27,5 +28,7 @@ router
   .delete(deleteConversation);
 
 router.get("/conversations/:id/messages", getMessages);
+
+router.get("/search", searchConversations);
 
 module.exports = router;

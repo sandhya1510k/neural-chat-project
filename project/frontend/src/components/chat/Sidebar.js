@@ -1,10 +1,7 @@
-/**
- * components/chat/Sidebar.js — Conversation list + user info
- */
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
+import { chatAPI } from '../../services/api';
 import ConversationItem from './ConversationItem';
 import styles from './Sidebar.module.css';
 
@@ -20,15 +17,38 @@ const Sidebar = ({ isOpen, onToggle }) => {
     socketConnected,
   } = useChat();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [searchResults, setSearchResults] = useState(null); // null = not searching
+  const [searching, setSearching]       = useState(false);
+  const debounceRef                     = useRef(null);
 
-  const filtered = conversations.filter(c =>
-    c.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Debounced backend search
+  useEffect(() => {
+    const q = searchQuery.trim();
 
-  const handleNewChat = async () => {
-    await createConversation();
-  };
+    if (!q) {
+      setSearchResults(null);
+      return;
+    }
+
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const { data } = await chatAPI.search(q);
+        setSearchResults(data.results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [searchQuery]);
+
+  // Which list to render
+  const displayList = searchResults !== null ? searchResults : conversations;
 
   return (
     <aside className={`${styles.sidebar} ${!isOpen ? styles.collapsed : ''}`}>
@@ -55,7 +75,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
       {/* New chat button */}
       <div className={styles.newChatWrap}>
-        <button className={styles.newChatBtn} onClick={handleNewChat}>
+        <button className={styles.newChatBtn} onClick={createConversation}>
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
             <path d="M7.5 1V14M1 7.5H14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
@@ -63,7 +83,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         </button>
       </div>
 
-      {/* Search — only when open */}
+      {/* Search — only when sidebar is open */}
       {isOpen && (
         <div className={styles.searchWrap}>
           <svg className={styles.searchIcon} width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -76,6 +96,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
+          {searching && <span className={styles.searchSpinner} />}
         </div>
       )}
 
@@ -85,15 +106,17 @@ const Sidebar = ({ isOpen, onToggle }) => {
           <div className={styles.listLoading}>
             {[1,2,3].map(i => <div key={i} className={styles.skeleton} />)}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : displayList.length === 0 ? (
           isOpen && (
             <div className={styles.empty}>
-              <p>No conversations yet</p>
-              <span>Start a new chat above</span>
+              {searchResults !== null
+                ? <><p>No results</p><span>Try different keywords</span></>
+                : <><p>No conversations yet</p><span>Start a new chat above</span></>
+              }
             </div>
           )
         ) : (
-          filtered.map(conv => (
+          displayList.map(conv => (
             <ConversationItem
               key={conv._id}
               conversation={conv}
@@ -101,12 +124,13 @@ const Sidebar = ({ isOpen, onToggle }) => {
               isOpen={isOpen}
               onSelect={() => selectConversation(conv._id)}
               onDelete={() => deleteConversation(conv._id)}
+              snippet={conv.snippet || null}
             />
           ))
         )}
       </div>
 
-      {/* Footer: user info + connection status */}
+      {/* Footer */}
       <div className={styles.footer}>
         <div className={styles.statusDot} data-connected={socketConnected} />
         {isOpen && (

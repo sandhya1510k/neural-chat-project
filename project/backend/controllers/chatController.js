@@ -57,9 +57,26 @@ const getMessages = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/chat/search?q=... — Full-text search across conversations + messages
+ */
+const searchConversations = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q || !q.trim()) {
+      return res.json({ success: true, results: [] });
+    }
+    const results = await chatService.searchConversations(req.user.id, q);
+    res.json({ success: true, results });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createConversation,
   getConversations,
   deleteConversation,
   getMessages,
+  searchConversations,
 };

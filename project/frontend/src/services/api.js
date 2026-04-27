@@ -51,6 +51,7 @@ export const chatAPI = {
   getConversations:   ()      => api.get('/chat/conversations'),
   deleteConversation: (id)    => api.delete(`/chat/conversations/${id}`),
   getMessages:        (id)    => api.get(`/chat/conversations/${id}/messages`),
+  search:             (q)     => api.get('/chat/search', { params: { q } }),
 };
 
 export default api;

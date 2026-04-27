@@ -57,6 +57,12 @@
   white-space: nowrap;
 }
 
+/* Search result snippet — slightly highlighted */
+.snippet {
+  color: var(--accent);
+  opacity: 0.85;
+}
+
 .meta {
   align-items: flex-end;
   display: flex;
